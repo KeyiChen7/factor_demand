@@ -43,13 +43,17 @@ def pull_CRSP_combined_file(
     # Connect to WRDS
     query = f"""
     SELECT 
-        a.*, b.lipper_asset_cd, b.lipper_class_name, b.crsp_obj_cd
+        a.*, b.lipper_asset_cd, b.lipper_class_name, b.crsp_obj_cd, c.index_fund_flag
     FROM 
         crsp.monthly_tna_ret_nav a
     LEFT JOIN 
         crsp.fund_style b
     ON 
         a.crsp_fundno = b.crsp_fundno
+    LEFT JOIN
+        crsp.fund_hdr c
+    ON
+        a.crsp_fundno = c.crsp_fundno
     WHERE 
         a.caldt BETWEEN '{start_date}' AND '{end_date}' AND
         SUBSTRING(b.crsp_obj_cd, 1, 2) = 'ED' AND
@@ -59,7 +63,6 @@ def pull_CRSP_combined_file(
         df = db.raw_sql(query, date_cols=["caldt"])
 
     return df
-
 
 def load_CRSP_combined_file(
     data_dir: Path = DATA_DIR,
